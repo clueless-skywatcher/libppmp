@@ -23,6 +23,16 @@ PPMImage *ppm_readimage(const char *filename) {
         return NULL;
     }
 
+    fgetc(file);
+    char c = fgetc(file);
+    if (c == '#') {
+        do {
+            c = fgetc(file);
+        } while (c != '\n' && c != EOF);
+    } else {
+        ungetc(c, file);
+    }
+
     fscanf(file, "%u %u", &(image->cols), &(image->rows));
     fscanf(file, "%u", &(image->maxval));
 
