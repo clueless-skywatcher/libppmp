@@ -102,3 +102,11 @@ bool ppm_writeimage(const char *filename, PPMImage *image) {
 
     return true;
 }
+
+Pixel *ppm_get_pixel(PPMImage *image, int x, int y) {
+    return &(image->pixels[y][x]);
+}
+
+void ppm_set_pixel(PPMImage *image, int x, int y, Pixel *pixel) {
+    image->pixels[y][x] = *pixel;
+}

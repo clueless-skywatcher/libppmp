@@ -14,10 +14,15 @@ int main(int argc, char **argv) {
     char *filename = argv[1];
     char *output = NULL;
     asprintf(&output, "rainbow_%s", basename(filename));
-
-    printf("%s %s", filename, output);
     
     PPMImage *image = ppm_readimage(filename);
+
+    Pixel red = {255, 0, 0};
+
+    ppm_set_pixel(image, 2, 2, &red);
+    Pixel *pixel = ppm_get_pixel(image, 3, 3);
+    printf("%d %d %d\n", pixel->r, pixel->g, pixel->b);
+
     ppm_writeimage(output, image);
     ppm_destroy(image);
 

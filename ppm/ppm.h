@@ -27,4 +27,7 @@ PPMImage *ppm_readimage(const char *filename);
 void ppm_destroy(PPMImage *image);
 bool ppm_writeimage(const char *filename, PPMImage *image);
 
+Pixel *ppm_get_pixel(PPMImage *image, int x, int y);
+void ppm_set_pixel(PPMImage *image, int x, int y, Pixel *pixel);
+
 #endif
