@@ -7,12 +7,6 @@ PPMImage *ppm_readimage(const char *filename) {
         return NULL;
     }
 
-    fseek(file, 0, SEEK_END);
-    size_t filesize = ftell(file);
-
-    int file_desc = fileno(file);
-    rewind(file);
-
     PPMImage *image = malloc(sizeof *image);
 
     char type[3] = {0};
@@ -36,41 +30,35 @@ PPMImage *ppm_readimage(const char *filename) {
     fscanf(file, "%u %u", &(image->cols), &(image->rows));
     fscanf(file, "%u", &(image->maxval));
 
-    off_t offset = ftell(file);
-
-    uint8_t *rawdata = mmap(NULL, filesize, PROT_READ, MAP_PRIVATE, file_desc, 0);
-
-    if (rawdata == MAP_FAILED) {
-        perror("mmap error");
-        fclose(file);
-        free(image);
-        return NULL;
-    }
+    fgetc(file);
 
     uint8_t bytes_per_value = image->maxval > 256 ? 2 : 1;
-    const int values_per_pixel = 3;
-
-    uint8_t *pixeldata = rawdata + offset + 1;
-
+    
     image->pixels = calloc(image->rows, sizeof(Pixel*));
 
     for (int y = 0; y < image->rows; y++) {
         image->pixels[y] = calloc(image->cols, sizeof(Pixel));
         for (int x = 0; x < image->cols; x++) {
-            uint8_t *pixelstart = pixeldata 
-                + (y * image->cols * values_per_pixel * bytes_per_value)
-                + (x * values_per_pixel * bytes_per_value);
             if (bytes_per_value == 1) {
-                image->pixels[y][x].r = pixelstart[0];
-                image->pixels[y][x].g = pixelstart[1];
-                image->pixels[y][x].b = pixelstart[2];
+                fread(&(image->pixels[y][x].r), 1, 1, file);
+                fread(&(image->pixels[y][x].g), 1, 1, file);
+                fread(&(image->pixels[y][x].b), 1, 1, file);
             } else {
-                image->pixels[y][x].r = (pixelstart[0] << 8) | pixelstart[1];
-                image->pixels[y][x].g = (pixelstart[2] << 8) | pixelstart[3];
-                image->pixels[y][x].b = (pixelstart[4] << 8) | pixelstart[5];
+                uint16_t r1, r2, g1, g2, b1, b2;
+                fread(&r1, 1, 1, file);
+                fread(&g1, 1, 1, file);
+                fread(&b1, 1, 1, file);
+                fread(&r2, 1, 1, file);
+                fread(&g2, 1, 1, file);
+                fread(&b2, 1, 1, file);
+                image->pixels[y][x].r = r1 << 8 | r2;
+                image->pixels[y][x].g = g1 << 8 | g2;
+                image->pixels[y][x].b = b1 << 8 | b2;
             }
         }
     }
+
+    fclose(file);
 
     return image;
 }
